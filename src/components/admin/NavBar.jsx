@@ -12,6 +12,7 @@ export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
             padding: "0 20px",
             gap: "10px",
         }}>
+            {/* Left Side */}
             {/* Conditional rendering: If isAdminView is true, show the hamburger
              menu for mobile view */}
             <div >
@@ -38,25 +39,30 @@ export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
                 )}
             </div>
 
+                {/* Right Side */}
             <div style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
             }}>
-            <div style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end"
-            }}>
-            <p style={{
-                margin: "0",
-                fontWeight: "bold",
-            }}> Date </p>
-            <p style={{
-                marginTop: "0",
-                fontWeight: "bold",
-            }}> Time </p>
-            </div>
+                {/* Conditional rendering: If isUserView or isAdminView is true,
+                show the date/time and profile icon */}
+                {(isUserView || isAdminView) ? (
+                    <>
+                    <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end"
+                    }}>
+                    <p style={{
+                        margin: "0",
+                        fontWeight: "bold",
+                    }}> Date </p>
+                    <p style={{
+                        marginTop: "0",
+                        fontWeight: "bold",
+                    }}> Time </p>
+                    </div> 
 
             {/* Dummy profile icon */}
             <div style={{
@@ -71,6 +77,10 @@ export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
             }}>
                 A
             </div>
+            </> ) : (
+                <Button text="Login/Signup"/>
+            )}
+                
             </div>
         </div>
     )

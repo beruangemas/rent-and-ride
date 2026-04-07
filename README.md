@@ -9,5 +9,5 @@ Target tech to be use are:
 
 Timestamp:
 7 Apr 2026
--build the admin dashboard layout as per drawn wireframe
--push the current state to Git
+- build the admin dashboard layout as per drawn wireframe
+- push the current state to Git
