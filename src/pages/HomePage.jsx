@@ -19,6 +19,15 @@ export default function HomePage(){
         color: "#555",
          }}>Book the perfect motorbike for 
         your next adventure.</p>
+
+        <div style = {{
+            display: "flex",
+            justifyContent: "space-around",
+            marginTop: "30px",
+
+        }}>
+            <div img src="../assets/homebike1.jpg" alt= "Bike 1"></div>
+        </div>
     </div>
     )
 }

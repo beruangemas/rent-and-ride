@@ -1,13 +1,19 @@
+Rent & Ride
+A full-stack web application designed to digitize operations and streamline bookings for a local motorbike rental business.
 
-This project is develop as my personal project and to help digitalize a local motorbike
-renting business.
+🛠️ Tech Stack
+Frontend: React
 
-Target tech to be use are:
-- PostgreSQL: for database
-- React: for front-end
-- Express + Node.js : for back-end
+Backend: Node.js & Express
 
-Timestamp:
-7 Apr 2026
-- build the admin dashboard layout as per drawn wireframe
-- push the current state to Git
+Database: PostgreSQL
+
+✨ Current Features
+Role-Based Routing: Dynamic navigation and layouts for Admins, Customers, and Public users.
+
+Admin Dashboard: Centralized view for pending approvals, active rentals, and fleet sizing.
+
+Customer Portal: Browse vehicle categories (Sportsbikes, Mopeds) and view active bookings.
+
+Responsive UI: Custom-built, reusable component architecture (Cards, Navbars, Sidebars).
+

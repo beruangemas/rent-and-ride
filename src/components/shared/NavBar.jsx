@@ -1,4 +1,5 @@
 import {Menu} from 'lucide-react';
+import Button from '../Button';
 
 export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
     return(
@@ -16,7 +17,7 @@ export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
             {/* Conditional rendering: If isAdminView is true, show the hamburger
              menu for mobile view */}
             <div >
-                {isAdminView ? (
+                {(isAdminView || isUserView) ? (
                     <button
                         onClick={toggleSidebar}
                         style={{
@@ -75,7 +76,8 @@ export default function NavBar({toggleSidebar, isAdminView, isUserView}) {
                 justifyContent: "center",
                 fontWeight: "bold",
             }}>
-                A
+                {/*Conditional rendering: Show "A" for Admin, "U" for User */}
+                {isAdminView ? "A" : isUserView ? "U" : null}
             </div>
             </> ) : (
                 <Button text="Login/Signup"/>

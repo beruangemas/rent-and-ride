@@ -1,11 +1,10 @@
 
 import './App.css'
-import UserTable from './components/admin/UserTable'
-import Boxes from './components/admin/Boxes'
-import SideBar from './components/admin/SideBar'
-import NavBar from './components/admin/NavBar'
-import Button from './components/Button'
-import HomePage from './components/HomePage'
+import SideBar from './components/shared/SideBar'
+import NavBar from './components/shared/NavBar'
+import HomePage from './pages/HomePage'
+import AdminPage from './pages/AdminPage'
+import UserPage from './pages/UserPage'
 import { useState } from 'react'
 
 export default function App (){
@@ -29,8 +28,8 @@ export default function App (){
     {/*NavBar component*/}
     <NavBar
       toggleSidebar={toggleSidebar}
-      isAdminView={true}
-      isUserView={false}
+      isAdminView={currentPage === "admin"}
+      isUserView={currentPage === "user"}
     />
 
     <div style={{
@@ -39,9 +38,9 @@ export default function App (){
     }}>
 
     {/* Only show sidebar if on the Admin page*/}
-    {currentPage === "admin" && isSidebarOpen && <SideBar />}
-    
-    {/*Main content area*/}
+    {currentPage === "admin" && isSidebarOpen && <SideBar isAdminView={true} isUserView={false} />}
+    {currentPage === "user" && isSidebarOpen && <SideBar isAdminView={false} isUserView={true} />}
+
     <div style = {{ 
       padding: `40px`, 
       fontFamily: `sans-serif`,
@@ -50,36 +49,14 @@ export default function App (){
       flex: 1,
       }}>
         
-        {/*Page Router */}
+        {/* New Page Router */}
       {currentPage === "home" ? (
         <HomePage />
+      ) : currentPage === "admin" ? (
+        <AdminPage />
       ) : (
-        <div style={{ 
-          padding: "40px", 
-          display: "flex", 
-          flexDirection: "column", 
-          flex: 1 }}>
-        <h1> Rent & Ride Admin </h1>
-    
-    {/*Boxes component*/}
-    <Boxes/>
-
-    {/*User table component*/}
-    <UserTable/>
-
-    <div style={{
-        display: "flex",
-        justifyContent: "space-around",
-        marginTop: "auto",
-
-      }}>
-        <Button text="Add New Bike"/>
-        <Button text="Log Maintenance"/>
-      </div>
-    </div>
+        <UserPage />
       )}
-    
-      {/*Main content area*/}
 
       {/*Temporary Dev Buttons to switch between Home and Admin views*/}
       <div style={{
@@ -91,6 +68,7 @@ export default function App (){
       }}>
         <button onClick = {() => setCurrentPage("home")} > View Homepage</button>
         <button onClick = {() => setCurrentPage("admin")} > View Admin</button>
+        <button onClick = {() => setCurrentPage("user")} > View User</button>
       </div>
       
     </div>
