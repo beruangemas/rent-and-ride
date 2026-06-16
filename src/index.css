@@ -1,3 +1,16 @@
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
+
+/* Keep your existing CSS reset below this! */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* 1. The universal selector (*) ensures padding doesn't stretch your boxes */
 * {
   box-sizing: border-box;
