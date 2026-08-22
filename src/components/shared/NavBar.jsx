@@ -2,7 +2,7 @@ import {Menu} from 'lucide-react';
 import Button from '../Button';
 import logoImage from '../../assets/rent_and_ride_icon.jpeg';
 
-export default function NavBar({ toggleSidebar, isAdminView, isUserView }) {
+export default function NavBar({ toggleSidebar, isAdminView, isUserView, setCurrentPage }) {
     return (
         <header className="bg-emerald/80 backdrop-blur-md dark:bg-on-background shadow-sm dark:bg-surface-container-low full-width top-0 sticky z-50">
             <div className="flex justify-between items-center w-full px-gutter max-w-container-max mx-auto h-20">
@@ -47,7 +47,9 @@ export default function NavBar({ toggleSidebar, isAdminView, isUserView }) {
                             </div>
                         </>
                     ) : (
-                        <button className="hidden md:flex items-center justify-center px-6 py-2 bg-primary-container text-white font-label-md text-label-md uppercase rounded hover:bg-inverse-primary transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 transform duration-200">
+                        <button 
+                            onClick={() => setCurrentPage("login")}
+                            className="hidden md:flex items-center justify-center px-6 py-2 bg-primary-container text-white font-label-md text-label-md uppercase rounded hover:bg-inverse-primary transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 transform duration-200">
                             Sign In
                         </button>
                     )}

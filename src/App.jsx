@@ -4,6 +4,7 @@ import NavBar from './components/shared/NavBar'
 import HomePage from './pages/HomePage'
 import AdminPage from './pages/AdminPage'
 import UserPage from './pages/UserPage'
+import LoginPage from './pages/LoginPage'
 import { useState } from 'react'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         toggleSidebar={toggleSidebar}
         isAdminView={currentPage === "admin"}
         isUserView={currentPage === "user"}
+        setCurrentPage={setCurrentPage} // passing the baton to navbar to render login page
       />
 
       {/* Middle Layout */}
@@ -48,6 +50,7 @@ export default function App() {
           {currentPage === "home" && <HomePage />}
           {currentPage === "admin" && <AdminPage />}
           {currentPage === "user" && <UserPage />}
+          {currentPage === "login" && <LoginPage setCurrentPage = {setCurrentPage} />}
 
           {/* Temporary Dev Buttons */}
           <div className="fixed bottom-[70px] left-3 flex gap-3 z-50">
