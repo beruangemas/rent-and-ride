@@ -1,4 +1,5 @@
 import {Menu} from 'lucide-react';
+import { useState } from 'react';
 import Button from '../Button';
 import logoImage from '../../assets/rent_and_ride_icon.jpeg';
 

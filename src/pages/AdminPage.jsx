@@ -16,6 +16,9 @@ export default function AdminPage() {
         daily_rate: '',
         current_mileage: '',
     });
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editBike, setEditBike] = useState(null);
     
     useEffect (() => {
         const fetchFleet = async () => {
@@ -73,6 +76,58 @@ export default function AdminPage() {
         }
     };
 
+    const handleUpdateBike = async (e) => {
+        e.preventDefault();
+
+        try{
+            const token = localStorage.getItem('token');
+            const response = await fetch (`http://localhost:3000/api/motorbikes/${editBike.id}`, {
+                method: `PUT`,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(editBike)
+            });
+
+            if (response.ok) {
+                const updatedBike = await response.json();
+
+                setFleet(fleet.map(bike => bike.id === updatedBike.id ? updatedBike : bike));
+                setIsEditModalOpen(false);
+                setEditBike(null);
+            } else {
+                console.error("Failed to update bike!")
+            }
+        } catch (error) {
+            console.error("Network error: ", error);
+        }
+    };
+
+    const handleDeleteBike = async (bikeId) => {
+        //safety confirmation in case accidentally click delete
+        if(!window.confirm("Are you sure you want to remove this motorbike from the active fleet?")) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:3000/api/motorbikes/${bikeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if(response.ok){
+                //filter the retired bike out
+                setFleet(fleet.filter(bike => bike.id !== bikeId));
+            } else {
+                console.error("Failed to delete bike!");
+            }
+        } catch (error) {
+            console.error("Network error: ", error);
+        }
+    }
+
     const rentedBikes = fleet.filter(bike => bike.status === 'Rented').length;
     const utilizedBikes = rentedBikes / fleet.length;
     const maintenanceBikes = fleet.filter(bike => bike.status === 'Maintenance').length;
@@ -128,7 +183,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex items-end gap-2">
                         <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">{rentedBikes}</span>
-                        <span className="font-body-md text-secondary mb-1">{utilizedBikes}%</span>
+                        <span className="font-body-md text-secondary mb-1">{utilizedBikes.toFixed(2)}%</span>
                     </div>
                 </div>
 
@@ -203,7 +258,7 @@ export default function AdminPage() {
                                     </tr>
                                 ) : (
                                     fleet.map((bike) => (
-                                        <tr key={bike.bike_id} className ="hover:bg-surface-container-low transition-colors group">
+                                        <tr key={bike.id} className ="hover:bg-surface-container-low transition-colors group">
                                             <td className="p-4 flex items-center gap-3">
                                                 <div className="w-12 h-12 bg-secondary-container rounded overflow-hidden flex-shrink-0">
                                                     {/*Fallback icon */}
@@ -235,11 +290,18 @@ export default function AdminPage() {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container"
+                                                    <button 
+                                                        onClick= {() => {
+                                                            setEditBike(bike);
+                                                            setIsEditModalOpen(true);
+                                                        }}
+                                                        className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container"
                                                     title="Edit">
                                                         <span className="material-symbols-outlined text-[20px]">edit</span>
                                                     </button>
-                                                    <button className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50"
+                                                    <button 
+                                                        onClick={() => handleDeleteBike(bike.id)}
+                                                        className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50"
                                                     title="Delete">
                                                         <span className="material-symbols-outlined text-[20px]">delete</span>
                                                     </button>
@@ -371,8 +433,8 @@ export default function AdminPage() {
                                     </div>
                                     <div>
                                         <label className="block font-label-sm text-secondary mb-1">Current Mileage (km)</label>
-                                        <input type="number" required value = {newBike.current_mileage}
-                                            onChange={(e) => setNewBike({...newBike, current_mileage: e.target.value})}
+                                        <input type="number" required value = {newBike.register_mileage}
+                                            onChange={(e) => setNewBike({...newBike, register_mileage: e.target.value})}
                                             placeholder="e.g. 15000"
                                             className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-nont"/>
                                     </div>
@@ -385,6 +447,66 @@ export default function AdminPage() {
                                         className=" px-4 py-2 bg-primary text-on-primary rounded font-label-md shadow hover:opacity-90 transition-opacity">Save Motorbike</button>
                                 </div>
                             </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Bike Modal */}
+            {isEditModalOpen && editBike && (
+                <div className ="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-surface-container-lowest w-full max-w-md rounded-lg shadow-2xl border border-outline-variant/30 overflow-hidden">
+                        <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+                            <h2 className="font-headline-md font-bold text-on-background">Edit Motorbike</h2>
+                            <button onClick={() => setIsEditModalOpen(false)}
+                                className="text-secondary hover:text-error transition-colors">
+                                    <span className = "material-symbols-outlined">close</span>
+                                </button>
+                        </div>
+
+                        <form onSubmit={handleUpdateBike}
+                            className="p-6 flex flex-col gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Make</label>
+                                        <input type="text" required value={editBike.make} onChange ={(e) => setEditBike({...editBike, make: e.target.value})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Model</label>
+                                        <input type="text" required value={editBike.model} onChange={(e) => setEditBike({...editBike, model: e.target.value})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Plate Number</label>
+                                        <input type="text" required value={editBike.plate_number} onChange={(e) => setEditBike({...editBike, plate_number: e.target.value})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Status</label>
+                                        <select value={editBike.status} onChange={(e) => setEditBike({...editBike, status: e.target.value})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none cursor-pointer">
+                                            <option value="Available">Available</option>
+                                            <option value="Rented">Rented</option>
+                                            <option value="Maintenance">Maintenance</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Daily Rate (RM)</label>
+                                        <input type="number" required value={editBike.daily_rate} onChange={(e) => setEditBike({...editBike, daily_rate: e.target})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Current Mileage</label>
+                                        <input type="number" required value={editBike.current_mileage} onChange={(e) => setEditBike({...editBike, current_mileage: e.target.value})} className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end gap-3 mt-4">
+                                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-secondary hover:bg-surface-container rounded font-label-md transition-colors">Cancel</button>
+                                    <button type="submit" className="px-4 py-2 bg-primary text-on-primary rounded font-label-md shadow hover:opacity-90 transition-opacity">Update Bike</button>
+                                </div>
+                        </form>
                     </div>
                 </div>
             )}
