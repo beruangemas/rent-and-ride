@@ -1,8 +1,82 @@
+import { useState, useEffect} from 'react';
 import Card from '../components/shared/Card'
 import UserTable from '../components/admin/UserTable'
 import Button from '../components/Button'
 
+
 export default function AdminPage() {
+
+    const [fleet, setFleet] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newBike, setNewBike] = useState({
+        make: '',
+        model: '',
+        plate_number: '',
+        daily_rate: '',
+        current_mileage: '',
+    });
+    
+    useEffect (() => {
+        const fetchFleet = async () => {
+            try {
+                const token = localStorage.getItem('token');
+
+                const response = await fetch ('http://localhost:3000/api/motorbikes', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ${token}'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setFleet(data);
+                } else {
+                    console.error("Failed to fetch fleet data");
+                }
+            } catch (error) {
+                console.error("Network error: ", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchFleet();
+    }, []);
+
+    const handleAddBike = async (e) => {
+        e.preventDefault();
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/api/motorbikes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(newBike)
+            });
+
+            if (response.ok) {
+                const addedBike = await response.json();
+                setFleet([...fleet, addedBike]);
+                setIsAddModalOpen(false); //close the popup
+                setNewBike({make: '', model:'', plate_number:'', daily_rate: '', current_mileage: '' }); //clear the form
+            } else {
+                console.error("Failed to add bike!");
+            }
+        } catch (error) {
+            console.error("Network error: ", error);
+        }
+    };
+
+    const rentedBikes = fleet.filter(bike => bike.status === 'Rented').length;
+    const utilizedBikes = rentedBikes / fleet.length;
+    const maintenanceBikes = fleet.filter(bike => bike.status === 'Maintenance').length;
+
     return (
         <div className="flex flex-col flex-1 w-full max-w-container-max mx-auto gap-stack-lg">
             
@@ -17,7 +91,9 @@ export default function AdminPage() {
                         <span className="material-symbols-outlined text-[20px]">download</span>
                         Download Report
                     </button>
-                    <button className="flex items-center gap-2 bg-primary-container text-white font-label-md uppercase px-4 py-2 rounded hover:opacity-90 transition-opacity shadow-[0_4px_20px_rgba(31,41,55,0.08)] hover:-translate-y-0.5">
+                    <button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 bg-primary-container text-white font-label-md uppercase px-4 py-2 rounded hover:opacity-90 transition-opacity shadow-[0_4px_20px_rgba(31,41,55,0.08)] hover:-translate-y-0.5">
                         <span className="material-symbols-outlined text-[20px]">add</span>
                         Add New Bike
                     </button>
@@ -36,8 +112,8 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <div className="flex items-end gap-2">
-                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">142</span>
-                        <span className="font-body-md text-primary-container mb-1">+3 this month</span>
+                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">{fleet.length}</span>
+                        <span className="font-body-md text-primary-container mb-1">Live from Database</span>
                     </div>
                 </div>
 
@@ -51,8 +127,8 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <div className="flex items-end gap-2">
-                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">86</span>
-                        <span className="font-body-md text-secondary mb-1">60% utilization</span>
+                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">{rentedBikes}</span>
+                        <span className="font-body-md text-secondary mb-1">{utilizedBikes}%</span>
                     </div>
                 </div>
 
@@ -66,7 +142,7 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <div className="flex items-end gap-2">
-                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">12</span>
+                        <span className="font-display-lg text-[48px] font-bold text-on-background leading-none">{maintenanceBikes}</span>
                         <span className="font-body-md text-error mb-1">Action needed</span>
                     </div>
                 </div>
@@ -80,7 +156,7 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <div className="flex items-end gap-2">
-                        <span className="font-display-lg text-[48px] font-bold text-primary leading-none">$45.2k</span>
+                        <span className="font-display-lg text-[48px] font-bold text-primary leading-none">RM45.2k</span>
                         <span className="font-body-md text-primary-container mb-1">+12% vs last</span>
                     </div>
                 </div>
@@ -119,99 +195,59 @@ export default function AdminPage() {
                             </thead>
                             <tbody className="font-body-md text-on-background divide-y divide-outline-variant/50">
                                 {/* Row 1 */}
-                                <tr className="hover:bg-surface-container-low transition-colors group">
-                                    <td className="p-4 flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-secondary-container rounded overflow-hidden flex-shrink-0">
-                                            <img alt="Ducati Panigale V4" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhpj5T3QTC9T6gzh9c9DrQZug_vX5hf76ysZRvjb0TkTJ1l-kUSpSIsPZMwgMLLASSsSDuFmynurPhCCQcEqY3EtD5H_lId1kcAygZgj7AzLMRBN3RjYE4jApe9odtoBQ9ENTkU7s6PUwUQW2-JTeTAJEjM4K45Q6VAhYhg9_TtqXim8LHNYqg3lgAAuE_FUlp_f9FnI692FH2f-zE5HVF6jvdSrOXrFxFItlJug7Ykq0CHdE1PCmSip31et2S5u9cwiMZ_F4UQMHJ" />
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">Ducati Panigale V4</div>
-                                            <div className="text-secondary font-label-sm">2023 Model</div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 font-mono text-secondary">MTO-8492</td>
-                                    <td className="p-4 text-secondary">Sport</td>
-                                    <td className="p-4">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-container/10 text-primary border border-primary-container/20">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
-                                            Available
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container" title="Edit">
-                                                <span className="material-symbols-outlined text-[20px]">edit</span>
-                                            </button>
-                                            <button className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50" title="Delete">
-                                                <span className="material-symbols-outlined text-[20px]">delete</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                {/* Row 2 */}
-                                <tr className="hover:bg-surface-container-low transition-colors group">
-                                    <td className="p-4 flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-secondary-container rounded overflow-hidden flex-shrink-0">
-                                            <img alt="Harley Davidson Fat Boy" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQyDylEiwNUa7JUmxXvJRgnMPk4CoT8l_k2EmrT82bNVNV-bJrVijnCBeaVMpX6xq-UO5oyfPVXOdG5UOINHIdk2hmrc_5mR9caoytrBut1vZ6ug07Iaj_GMSjo9TZV9L9g_rRFV_KSpLqtAa0JgZ2Lcop1627VgGLhLstd7NwzDPR3NchNAYdW3erCg7xGtUnX3h0tu1mwyCCEgsYduk9bzjqglZ3iA4syWV1jo6t0KrnMvoj596ALoNFoghTFIXppHLhj6-Fd4H4" />
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">Harley Davidson Fat Boy</div>
-                                            <div className="text-secondary font-label-sm">2022 Model</div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 font-mono text-secondary">MTO-1102</td>
-                                    <td className="p-4 text-secondary">Cruiser</td>
-                                    <td className="p-4">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-highest text-secondary border border-outline-variant">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                                            Rented
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container">
-                                                <span className="material-symbols-outlined text-[20px]">edit</span>
-                                            </button>
-                                            <button className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50">
-                                                <span className="material-symbols-outlined text-[20px]">delete</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                {/* Row 3 */}
-                                <tr className="hover:bg-surface-container-low transition-colors group">
-                                    <td className="p-4 flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-secondary-container rounded overflow-hidden flex-shrink-0">
-                                            <div className="w-full h-full bg-surface-dim flex items-center justify-center text-outline">
-                                                <span className="material-symbols-outlined">image</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">BMW R 1250 GS</div>
-                                            <div className="text-secondary font-label-sm">2024 Model</div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 font-mono text-secondary">MTO-9934</td>
-                                    <td className="p-4 text-secondary">Touring</td>
-                                    <td className="p-4">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-error-container text-error border border-error/20">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
-                                            Maintenance
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container">
-                                                <span className="material-symbols-outlined text-[20px]">edit</span>
-                                            </button>
-                                            <button className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50">
-                                                <span className="material-symbols-outlined text-[20px]">delete</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                {fleet.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className= "p-8 text-center text-secondary">
+                                            No motorbikes found in the database!
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    fleet.map((bike) => (
+                                        <tr key={bike.bike_id} className ="hover:bg-surface-container-low transition-colors group">
+                                            <td className="p-4 flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-secondary-container rounded overflow-hidden flex-shrink-0">
+                                                    {/*Fallback icon */}
+                                                    <div className="w-full h-full bg-surface-dim flex items-center justify-center text-outline">
+                                                        <span className="mateial-symbols-outlined">motorcycle</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold">{bike.make} {bike.model}</div>
+                                                    <div className="text-secondary font-label-sm">RM {bike.daily_rate}/day</div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 font-mono text-secondary">{bike.plate_number}</td>
+                                            <td className="p-4 text-secondary">Standard</td>
+                                            <td className="p-4">
+                                                {/*Dynamic status badge */}
+                                                <span className = {`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${bike.status === 'Available' ? 
+                                                'bg-primary-container/10 text-primary border-primary-container/20' :
+                                                bike.status === 'Rented' ? 'bg-surface-container-highest text-secondary border-outline-variant' :
+                                                'bg-error-container text-error border-error/20'}
+                                            `}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                                    bike.status === 'Available' ? 'bg-primary-container' :
+                                                    bike.status === 'Rented' ? 'bg-secondary' :
+                                                    'bg-error'
+                                                }`}></span>
+                                                {bike.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button className="p-1.5 text-secondary hover:text-primary transition-colors rounded hover:bg-surface-container"
+                                                    title="Edit">
+                                                        <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                    </button>
+                                                    <button className="p-1.5 text-secondary hover:text-error transition-colors rounded hover:bg-error-container/50"
+                                                    title="Delete">
+                                                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -284,6 +320,74 @@ export default function AdminPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Add new bike modal */}
+            {isAddModalOpen && (
+                <div className= "fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-surface-container-lowest w-full max-w-md rounded-lg shadow-2xl border border-outline-variant/30 overflow-hidden">
+                        <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+                            <h2 className="font-headline-md font-bold text-on-background">Add New Motorbikes</h2>
+                            <button onClick={ () =>
+                                setIsAddModalOpen(false)
+                            } className="text-secondary hover:text-error transition-colors">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit= {handleAddBike}
+                            className="p-6 flex flex-col gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Make</label>
+                                        <input type="text" required value = {newBike.make}
+                                            onChange={(e) => setNewBike({...newBike, make: e.target.value})}
+                                            placeholder="e.g. Yamaha"
+                                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Model</label>
+                                        <input type="text" required value = {newBike.model}
+                                            onChange={(e) => setNewBike({...newBike, model: e.target.value})}
+                                            placeholder="e.g. Y15ZR"
+                                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block font-label-sm text-secondary mb-1">Plate Number</label>
+                                    <input type="text" required value = {newBike.plate_number}
+                                        onChange={(e) => setNewBike({...newBike, plate_number: e.target.value})}
+                                        placeholder="e.g. VMU 1234"
+                                        className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none"/>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Daily Rate (RM)</label>
+                                        <input type="number" required value={newBike.daily_rate}
+                                            onChange={(e) => setNewBike({...newBike, daily_rate: e.target.value})}
+                                            placeholder="0.00"
+                                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block font-label-sm text-secondary mb-1">Current Mileage (km)</label>
+                                        <input type="number" required value = {newBike.current_mileage}
+                                            onChange={(e) => setNewBike({...newBike, current_mileage: e.target.value})}
+                                            placeholder="e.g. 15000"
+                                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded focus:ring-primary focus:border-primary outline-nont"/>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end gap-3 mt-4">
+                                    <button type="button" onClick = {() => setIsAddModalOpen(false)}
+                                        className="px-4 py-2 text-secondary hover:bg-surface-container rounded font-label-md transition-colors">Cancel</button>
+                                    <button type="submit" 
+                                        className=" px-4 py-2 bg-primary text-on-primary rounded font-label-md shadow hover:opacity-90 transition-opacity">Save Motorbike</button>
+                                </div>
+                            </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -9,11 +9,25 @@ export default function NavBar({ toggleSidebar, isAdminView, isUserView, setCurr
                 
                 {/* --- LEFT SIDE: Clickable Brand --- */}
                 <div className="flex items-center gap-4 -translate-x-5">
+
+                    {/*Hamburger menu: only show if logged in */}
+                    {(isAdminView || isUserView) && (
+                        <button
+                            onClick={toggleSidebar}
+                            className="hover:opacity-80 transition-opacity p-2 ml-4 text-on-surface">
+                                <Menu size={28} />
+                            </button>
+                    )}
+
                 {/* The Rent and Ride text is now the toggle button! */}
                 <button 
-                    onClick={toggleSidebar} 
+                    onClick={() => {
+                        if (isAdminView) setCurrentPage("admin");
+                        else if (isUserView) setCurrentPage("user");
+                        else setCurrentPage("home");
+                    }}
                     
-                    className="hover:opacity-80 transition-opacity duration-200 bg-transparent border-none cursor-pointer p-0 -ml-10">
+                    className={`hover:opacity-80 transition-opacity duration-200 bg-transparent border-none cursor-pointer p-0 ${!(isAdminView || isUserView) ? 'ml-6' : ' '}`}>
                         <img 
                             src={logoImage} /* Use the variable name from your import here! */
                             alt="Rent & Ride Logo" 

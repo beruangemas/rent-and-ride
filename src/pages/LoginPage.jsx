@@ -3,14 +3,15 @@ import { useState } from "react";
 export default function LoginPage({setCurrentPage}){
 
     //captures what the user type
-    const [email, setEmail] = useState(' ');
-    const [password, setPassword] = useState(' ');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     //intercepts the form before the page refreshes
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const sanitizedEmail = email.trim().toLowerCase();
         try {
             const response = await fetch('http://localhost:3000/api/auth/login', {
                 method: 'POST',
@@ -93,7 +94,7 @@ export default function LoginPage({setCurrentPage}){
                             type= {showPassword ? "text" : "password"}
                             value={password}
                             onChange= {(e) => setPassword(e.target.value)}
-                            placeholder = "**********"
+                            placeholder ="**********"
                             required
                             className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded text-on-surface font-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                             />

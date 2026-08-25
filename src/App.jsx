@@ -5,11 +5,30 @@ import HomePage from './pages/HomePage'
 import AdminPage from './pages/AdminPage'
 import UserPage from './pages/UserPage'
 import LoginPage from './pages/LoginPage'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState("home");
+
+  //memory check
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.role === 'admin') {
+          setCurrentPage('admin');
+        } else {
+          setCurrentPage('user');
+        }
+      } catch (error) {
+        console.error("Invalid token found: ", error);
+        localStorage.removeItem('token'); //clean up broken key
+      }
+    }
+  }, [] );
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -52,19 +71,22 @@ export default function App() {
           {currentPage === "user" && <UserPage />}
           {currentPage === "login" && <LoginPage setCurrentPage = {setCurrentPage} />}
 
-          {/* Temporary Dev Buttons */}
-          <div className="fixed bottom-[70px] left-3 flex gap-3 z-50">
+          
+          
+        </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="h-[50px] bg-[#50c878] flex items-center justify-center text-[gold] text-lg [text-shadow:1px_1px_2px_black] relative z-50 border-t border-gray-300">
+        &copy; 2024 Rent & Ride. All rights reserved.
+
+        {/* Temporary Dev Buttons */}
+          <div className="fixed bottom-[10px] left-3 flex gap-3 z-50">
             <button 
               onClick={() => setCurrentPage("home")}
               className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 shadow-md transition-colors"
             > 
               View Homepage
-            </button>
-            <button 
-              onClick={() => setCurrentPage("admin")}
-              className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 shadow-md transition-colors"
-            > 
-              View Admin
             </button>
             <button 
               onClick={() => setCurrentPage("user")}
@@ -73,13 +95,6 @@ export default function App() {
               View User
             </button>
           </div>
-          
-        </main>
-      </div>
-
-      {/* Footer */}
-      <footer className="h-[50px] bg-[#50c878] flex items-center justify-center text-[gold] text-lg [text-shadow:1px_1px_2px_black] relative z-50 border-t border-gray-300">
-        &copy; 2024 Rent & Ride. All rights reserved.
       </footer>
       
     </div>
